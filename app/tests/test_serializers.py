@@ -16,5 +16,5 @@ class MovieSerializerTest(TestCase):
 
     def test_serialization(self):
         data = self.serializer.data
-        self.assertEqual(set(data.keys()), {'id', 'title', 'duration', 'summary', 'poster_url'})
+        self.assertEqual(set(data.keys()), {'id', 'title', 'poster_url'})
         self.assertEqual(data['title'], "Inception")
