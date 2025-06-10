@@ -1,0 +1,22 @@
+[
+    {
+        "model": "app.movie",
+        "pk": 1,
+        "fields": {
+            "title": "Interstellar",
+            "duration": "2h49",
+            "summary": "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
+            "poster_url": "http://example.com/interstellar.jpg"
+        }
+    },
+    {
+        "model": "app.movie",
+        "pk": 2,
+        "fields": {
+            "title": "The Dark Knight",
+            "duration": "2h32",
+            "summary": "When the menace known as The Joker emerges from his mysterious past, he wreaks havoc and chaos on the people of Gotham.",
+            "poster_url": "http://example.com/darkknight.jpg"
+        }
+    }
+]
