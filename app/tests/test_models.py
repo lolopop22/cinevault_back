@@ -1,19 +1,23 @@
-from django.test import TestCase
-from ..models import Movie
+from .test_setup import TestModelSetup
 
-class MovieModelTest(TestCase):
 
-    def setUp(self):
-        self.movie = Movie.objects.create(
-            title="Inception",
-            duration="2h28",
-            summary="A mind-bending thriller",
-            poster_url="http://example.com/poster.jpg"
-        )
+class ModelTests(TestModelSetup):
+
+    def test_person_str(self):
+        self.assertEqual(str(self.director), "Quentin Tarantino")
+        self.assertEqual(str(self.producer), "Steven Spielberg")
+        self.assertEqual(str(self.actor_1), "Leonardo DiCaprio")
+        self.assertEqual(str(self.actor_2), "Brad Pitt")
 
     def test_movie_str(self):
-        self.assertEqual(str(self.movie), "Inception")
+        self.assertEqual(str(self.movie_1), "Inception")
+        self.assertEqual(str(self.movie_2), "Once Upon a Time in Hollywood")
 
     def test_movie_creation(self):
-        self.assertEqual(self.movie.title, "Inception")
-        self.assertEqual(self.movie.duration, "2h28")
+        self.assertEqual(self.movie_1.title, "Inception")
+        self.assertEqual(self.movie_1.duration, "2h28")
+
+    def test_movie_relations(self):
+        self.assertIn(self.director, self.movie_1.directors.all())
+        self.assertIn(self.producer, self.movie_1.producers.all())
+        self.assertIn(self.actor_1, self.movie_1.actors.all())
