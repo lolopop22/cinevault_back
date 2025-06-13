@@ -32,6 +32,7 @@ class Actor(Person):
 
 
 class Movie(models.Model):
+    imdb_id = models.CharField(max_length=20, unique=True)
     title = models.CharField(max_length=255)
     duration = models.CharField(max_length=10)
     summary = models.TextField()
