@@ -56,3 +56,11 @@ class MovieDetailSerializer(serializers.ModelSerializer):
             "producers",
             "actors",
         )
+
+
+class MovieSearchSerializer(serializers.Serializer):
+    title = serializers.CharField(
+        max_length=255,
+        required=True,
+        error_messages={"blank": "Le titre du film ne peut être vide."},
+    )

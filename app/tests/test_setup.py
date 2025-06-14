@@ -12,6 +12,7 @@ class TestModelSetup(APITestCase):
         self.actor_data_2 = {"name": "Brad Pitt", "imdb_id": "nm0000123"}
 
         self.movie_data_1 = {
+            "imdb_id": "tt1234567",
             "title": "Inception",
             "duration": "2h28",
             "summary": "A mind-bending thriller",
@@ -19,6 +20,7 @@ class TestModelSetup(APITestCase):
         }
 
         self.movie_data_2 = {
+            "imdb_id": "tt7654321",
             "title": "Once Upon a Time in Hollywood",
             "duration": "2h39m",
             "summary": "A movie about Hollywood in the 60s.",

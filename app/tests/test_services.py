@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from imdb import IMDbError, Movie
+from imdb import IMDbError
 from django.test import TestCase
 from ..services import IMDbService
 
