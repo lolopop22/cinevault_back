@@ -1,22 +1,74 @@
 [
-    {
-        "model": "app.movie",
-        "pk": 1,
-        "fields": {
-            "title": "Interstellar",
-            "duration": "2h49",
-            "summary": "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
-            "poster_url": "http://example.com/interstellar.jpg"
-        }
-    },
-    {
-        "model": "app.movie",
-        "pk": 2,
-        "fields": {
-            "title": "The Dark Knight",
-            "duration": "2h32",
-            "summary": "When the menace known as The Joker emerges from his mysterious past, he wreaks havoc and chaos on the people of Gotham.",
-            "poster_url": "http://example.com/darkknight.jpg"
-        }
+{
+    "model": "app.director",
+    "pk": 1,
+    "fields": {
+        "name": "Quentin Tarantino",
+        "imdb_id": "nm0000233"
     }
+},
+{
+    "model": "app.producer",
+    "pk": 1,
+    "fields": {
+        "name": "Steven Spielberg",
+        "imdb_id": "nm0000229"
+    }
+},
+{
+    "model": "app.actor",
+    "pk": 1,
+    "fields": {
+        "name": "Leonardo DiCaprio",
+        "imdb_id": "nm0000138"
+    }
+},
+{
+    "model": "app.actor",
+    "pk": 2,
+    "fields": {
+        "name": "Brad Pitt",
+        "imdb_id": "nm0000123"
+    }
+},
+{
+    "model": "app.movie",
+    "pk": 1,
+    "fields": {
+        "imdb_id": "tt1234567",
+        "title": "Interstellar",
+        "duration": "2h49",
+        "summary": "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
+        "poster_url": "http://example.com/interstellar.jpg",
+        "directors": [
+            1
+        ],
+        "producers": [
+            1
+        ],
+        "actors": [
+            1
+        ]
+    }
+},
+{
+    "model": "app.movie",
+    "pk": 2,
+    "fields": {
+        "imdb_id": "tt7654321",
+        "title": "Once Upon a Time in Hollywood",
+        "duration": "2h32",
+        "summary": "\"A movie about Hollywood in the 60s.",
+        "poster_url": "http://example.com/poster.jpg",
+        "directors": [
+            1
+        ],
+        "producers": [
+            1
+        ],
+        "actors": [
+            2
+        ]
+    }
+}
 ]
