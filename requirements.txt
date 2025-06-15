@@ -2,3 +2,4 @@ djangorestframework==3.x.x
 imdbpy
 django-cors-headers
 injector
+python-dotenv

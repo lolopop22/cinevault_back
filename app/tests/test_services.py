@@ -15,16 +15,16 @@ class TestIMDbService(TestCase):
         # Simuler les résultats de recherche
 
         movie1 = MagicMock(movieID="tt1234567")
-        movie1.__getitem__.side_effect = lambda key: {
+        movie1.get.side_effect = lambda key, default="Non indiqué": {
             "title": "Inception",
             "cover url": "http://example.com/poster1.jpg",
-        }.get(key)
+        }.get(key, default)
 
         movie2 = MagicMock(movieID="tt7654321")
-        movie2.__getitem__.side_effect = lambda key: {
+        movie2.get.side_effect = lambda key, default="Non indiqué": {
             "title": "Matrix",
             "cover url": "http://example.com/poster2.jpg",
-        }.get(key)
+        }.get(key, default)
 
         mock_search_movie.return_value = [movie1, movie2]
 

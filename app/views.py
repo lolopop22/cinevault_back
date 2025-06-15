@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -20,6 +22,7 @@ class MovieViewSet(viewsets.ModelViewSet):
     detail_serializer_class = MovieDetailSerializer
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
+        logging.info("Initialisation de la vue gérant les films")
         super().__init__(*args, **kwargs)
         self.imdb_service: IMDbService = injector.get(
             IMDbService
@@ -35,12 +38,13 @@ class MovieViewSet(viewsets.ModelViewSet):
         serializer = MovieSearchSerializer(data=request.query_params)
         if serializer.is_valid():
             title = serializer.validated_data["title"]
+            logging.info(f"Recherche du film {title}")
 
             try:
                 results = self.imdb_service.search_movie(title)
                 return Response(results, status=status.HTTP_200_OK)
             except Exception as e:
-                print(str(e))
+                logging.exception(f"Une erreur est survenue: {e}")
                 return Response(
                     {"detail": "Une erreur est survenue"},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
