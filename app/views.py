@@ -9,7 +9,8 @@ from .models import Movie
 from .serializers import (
     MovieListSerializer,
     MovieDetailSerializer,
-    MovieSearchSerializer,
+    MovieSearchRequestSerializer,
+    MovieAddRequestSerializer,
 )
 
 from .container import injector
@@ -33,13 +34,13 @@ class MovieViewSet(viewsets.ModelViewSet):
             return self.detail_serializer_class
         return super().get_serializer_class()
 
-    @action(detail=False, methods=["get"], url_path="search", url_name="search")
+    @action(detail=False, methods=["get"], url_path="search", url_name="search_movie")
     def search_movies(self, request):
-        serializer = MovieSearchSerializer(data=request.query_params)
+        serializer = MovieSearchRequestSerializer(data=request.query_params)
         if serializer.is_valid():
             title = serializer.validated_data["title"]
-            logging.info(f"Recherche du film {title}")
 
+            logging.info(f"Recherche du film {title}")
             try:
                 results = self.imdb_service.search_movie(title)
                 return Response(results, status=status.HTTP_200_OK)
@@ -48,6 +49,32 @@ class MovieViewSet(viewsets.ModelViewSet):
                 return Response(
                     {"detail": "Une erreur est survenue"},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=["post"], url_path="add", url_name="add_movie")
+    def add_movie(self, request):
+        serializer = MovieAddRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            imdb_id = serializer.validated_data["imdb_id"]
+
+            logging.info(f"Ajout du film d'id IMDb '{imdb_id}' au catalogue.")
+            try:
+                movie_details = self.imdb_service.get_movie_details(imdb_id)
+                logging.debug(f"movie_details: {movie_details}")
+                detail_serializer = self.detail_serializer_class(data=movie_details)
+                if detail_serializer.is_valid():
+                    detail_serializer.save()
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                else:
+                    return Response(
+                        detail_serializer.errors,
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
+            except Exception as e:
+                return Response(
+                    {"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

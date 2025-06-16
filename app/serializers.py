@@ -48,6 +48,7 @@ class MovieDetailSerializer(serializers.ModelSerializer):
         model = Movie
         fields = (
             "id",
+            "imdb_id",
             "title",
             "duration",
             "summary",
@@ -58,9 +59,17 @@ class MovieDetailSerializer(serializers.ModelSerializer):
         )
 
 
-class MovieSearchSerializer(serializers.Serializer):
+class MovieSearchRequestSerializer(serializers.Serializer):
     title = serializers.CharField(
         max_length=255,
         required=True,
         error_messages={"blank": "Le titre du film ne peut être vide."},
+    )
+
+
+class MovieAddRequestSerializer(serializers.Serializer):
+    imdb_id = serializers.CharField(
+        max_length=10,
+        required=True,
+        error_messages={"blank": "L'identifiant IMDb de ce film ne peut être vide"},
     )

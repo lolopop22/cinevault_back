@@ -27,6 +27,7 @@ class SerializerTest(TestModelSetup):
             set(data.keys()),
             {
                 "id",
+                "imdb_id",
                 "title",
                 "duration",
                 "summary",

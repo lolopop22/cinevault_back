@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -112,13 +113,15 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "fr-fr"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Europe/Paris"
 
 USE_I18N = True
 
 USE_TZ = True
+
+DEV_MODE_ON = os.getenv("DEV_MODE_ON") == "True"
 
 LOGGING = {
     "version": 1,
@@ -138,6 +141,24 @@ LOGGING = {
     "root": {
         "handlers": ["console"],
         "level": "DEBUG" if DEBUG else "INFO",
+    },
+    "loggers": {
+        **(
+            {
+                "django": {
+                    "handlers": ["console"],
+                    "level": "DEBUG" if DEBUG else "INFO",
+                    "propagate": False,
+                },
+                "django.request": {
+                    "handlers": ["console"],
+                    "level": "DEBUG" if DEBUG else "INFO",
+                    "propagate": False,
+                },
+            }
+            if DEV_MODE_ON
+            else {}
+        )
     },
 }
 

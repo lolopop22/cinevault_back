@@ -14,7 +14,7 @@ class TestMovieViewSet(TestModelSetup):
 
         self.url = reverse_lazy("movie-list")
         self.detail_url = reverse_lazy("movie-detail", kwargs={"pk": self.movie_1.id})
-        self.search_url = reverse_lazy("movie-search")
+        self.search_url = reverse_lazy("movie-search_movie")
 
     def test_get_movie_list(self):
         response = self.client.get(self.url)
