@@ -44,3 +44,9 @@ class TestModelSetup(APITestCase):
         self.movie_2.directors.add(self.director)
         self.movie_2.producers.add(self.producer)
         self.movie_2.actors.add(self.actor_2)
+
+        self.valid_imdb_id_data = {"imdb_id": "tt0111161"}
+        self.invalid_imdb_id_data_blank = {"imdb_id": ""}
+        self.invalid_imdb_id_data_long = {
+            "imdb_id": "tt0111161234"  # Exceeds maximum length
+        }

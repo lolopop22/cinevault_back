@@ -1,6 +1,7 @@
 import os
 import logging
 from imdb import Cinemagoer, IMDbError
+from imdbinfo.services import get_movie
 from typing import List, Dict
 
 
@@ -39,59 +40,60 @@ class IMDbService:
             )
 
     def get_movie_details(self, imdb_id: str) -> Dict:
-        """Récupère les détails complets d'un film"""
+        """Obtient les détails complets d'un film selon IMDb ID."""
         try:
-            movie = self.ia.get_movie(
-                imdb_id,
-                info=(
-                    "title",
-                    "runtime",
-                    "plot",
-                    "cover",
-                    "directors",
-                    "producers",
-                    "cast",
-                ),
-            )
+            # movie = web.get_title(imdb_id)
+            movie = get_movie(imdb_id)
 
-            logging.debug(f"runtime: {movie.get('runtime')}")
-            logging.debug(f"movie: {movie.data}")
-            # logging.debug(f"actors: {movie['cast']}
-            logging.debug(f"producers: {movie['producer']}")
-            logging.debug(f"directors: {movie['director']}")
+            title = getattr(movie, "title", "N/A")
+            duration = self.format_runtime(getattr(movie, "duration", "N/A"))
+            summary = getattr(movie, "plot", "N/A")
+            poster_url = getattr(movie, "cover_url", "N/A")
+            directors = getattr(movie, "directors", "N/A")
+            producers = getattr(movie, "producers", "N/A")
+            actors = getattr(movie, "stars", "N/A")
+
+            logging.debug(f"movie: {title}")
+            logging.debug(f"runtime: {duration}")
+            logging.debug(f"summary: {summary}")
+            logging.debug(f"poster_url: {poster_url}")
+            logging.debug(f"actors: {actors}")
+            logging.debug(f"producers: {producers}")
+            logging.debug(f"directors: {directors}")
 
             return {
                 "imdb_id": imdb_id,
-                "title": movie.get("title", ""),
-                "duration": (
-                    self.runtime_str(movie.get("runtime")[0])
-                    if movie.get("runtime")
-                    else "Non indiqué"
-                ),
-                "summary": movie.get("plot", [""])[0] if movie.get("plot") else "",
-                "poster_url": movie.get("cover url", "Non indiqué"),
-                # "categories": [genre for genre in movie.get("genres", [])],
-                "directors": [
-                    director["name"] for director in movie.get("directors", [])
-                ],
-                "producers": [
-                    producer["name"] for producer in movie.get("producers", [])
-                ],
-                "actors": [actor["name"] for actor in movie.get("cast", [])[:10]],
+                "title": title,
+                "duration": duration,
+                "summary": summary,
+                "poster_url": poster_url,
+                "directors": self._extract_people(directors),
+                "producers": self._extract_people(producers),
+                "actors": self._extract_people(actors)[:10],
             }
-        except IMDbError as e:
-            logging.exception(f"Erreur provenant de IMDb: {e}")
-            raise e
         except Exception as e:
+            logging.exception(
+                f"Erreur lors de la récupération des détails du film (IMDb Id: {imdb_id})."
+            )
             raise Exception(
                 f"Erreur lors de la récupération des détails du film avec l'id IMDb {imdb_id} : {str(e)}"
             )
 
-    def runtime_str(self, runtime):
+    def format_runtime(self, runtime):
         try:
             q = int(runtime) // 60
             r = int(runtime) % 60
             return f"{q}h{r}"
         except Exception as e:
             logging.warning(f"Erreur dans le calcul du runtime ({e})", exc_info=True)
-            return "Non indiqué"
+            return "N/A"
+
+    def _extract_people(self, people) -> List[Dict]:
+        """Extrait une liste de personnes (réalisateurs, producteurs, acteurs)."""
+        return [
+            {
+                "name": getattr(person, "name", "N/A"),
+                "imdb_id": getattr(person, "imdbId", "N/A"),
+            }
+            for person in people
+        ]

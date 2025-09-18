@@ -15,6 +15,7 @@ class TestMovieViewSet(TestModelSetup):
         self.url = reverse_lazy("movie-list")
         self.detail_url = reverse_lazy("movie-detail", kwargs={"pk": self.movie_1.id})
         self.search_url = reverse_lazy("movie-search_movie")
+        self.add_movie_url = reverse_lazy("movie-add_movie")
 
     def test_get_movie_list(self):
         response = self.client.get(self.url)
@@ -57,7 +58,7 @@ class TestMovieViewSet(TestModelSetup):
     def test_search_movies_missing_title(self):
         response = self.client.get(self.search_url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("This field is required.", response.data["title"])
+        self.assertIn("Ce champ est obligatoire.", response.data["title"])
 
     @patch.object(IMDbService, "search_movie")
     def test_search_movies_generic_exception(self, mock_search_movie):
@@ -65,3 +66,52 @@ class TestMovieViewSet(TestModelSetup):
         response = self.client.get(self.search_url, {"title": "Inception"})
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertIn("Une erreur est survenue", response.data["detail"])
+
+    @patch.object(IMDbService, "get_movie_details")
+    def test_add_movie_success(self, mock_get_movie_details):
+        """Vérifie l'ajout réussi d'un nouveau film au catalogue général."""
+        mock_get_movie_details.return_value = {
+            "imdb_id": "tt0068646",
+            "title": "The Godfather",
+            "duration": "2h55",
+            "summary": "Crime film.",
+            "poster_url": "http://example.com/godfather.jpg",
+            "directors": [{"name": "Francis Ford Coppola", "imdb_id": "nm0001123"}],
+            "producers": [{"name": "Albert S. Ruddy", "imdb_id": "nm0748918"}],
+            "actors": [{"name": "Marlon Brando", "imdb_id": "nm0000008"}],
+        }
+        response = self.client.post(self.add_movie_url, {"imdb_id": "tt0068646"})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    @patch.object(IMDbService, "get_movie_details")
+    def test_add_movie_duplicate(self, mock_get_movie_details):
+        """Test que l'ajout d'un film déjà existant dans le catalogue échoue."""
+        # Configuration du retour simulé pour get_movie_details
+        mock_get_movie_details.return_value = {
+            "imdb_id": self.movie_data_1["imdb_id"],
+            "title": self.movie_data_1["title"],
+            "duration": self.movie_data_1["duration"],
+            "summary": self.movie_data_1["summary"],
+            "poster_url": self.movie_data_1["poster_url"],
+            "directors": [self.director_data],
+            "producers": [self.producer_data],
+            "actors": [self.actor_data_1],
+        }
+
+        # Tenter d'ajouter le même film une deuxième fois
+        response = self.client.post(
+            self.add_movie_url, {"imdb_id": self.movie_data_1["imdb_id"]}
+        )
+
+        # Vérifier que le code de réponse est 400 BAD REQUEST et que le message approprié est renvoyé
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("Le film existe déjà dans le catalogue.", response.data["detail"])
+
+    def test_add_movie_with_invalid_imdb_id(self):
+        """Test d'ajout avec un IMDb ID invalide."""
+        response = self.client.post(self.add_movie_url, {"imdb_id": "invalid_id"})
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertIn(
+            "Erreur lors de la récupération des détails du film",
+            response.data["detail"],
+        )

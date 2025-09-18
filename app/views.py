@@ -55,24 +55,32 @@ class MovieViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["post"], url_path="add", url_name="add_movie")
     def add_movie(self, request):
+        """Ajoute un film au catalogue via un identifiant IMDb."""
+
         serializer = MovieAddRequestSerializer(data=request.data)
         if serializer.is_valid():
             imdb_id = serializer.validated_data["imdb_id"]
 
-            logging.info(f"Ajout du film d'id IMDb '{imdb_id}' au catalogue.")
             try:
+                logging.info(f"Ajout du film d'id IMDb '{imdb_id}' au catalogue.")
+                if Movie.objects.filter(imdb_id=imdb_id).exists():
+                    return Response(
+                        {"detail": "Le film existe déjà dans le catalogue."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
                 movie_details = self.imdb_service.get_movie_details(imdb_id)
                 logging.debug(f"movie_details: {movie_details}")
                 detail_serializer = self.detail_serializer_class(data=movie_details)
                 if detail_serializer.is_valid():
                     detail_serializer.save()
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
-                else:
-                    return Response(
-                        detail_serializer.errors,
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    )
+                return Response(
+                    detail_serializer.errors,
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
             except Exception as e:
+                logging.exception("Erreur lors de l'ajout du film.")
                 return Response(
                     {"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )

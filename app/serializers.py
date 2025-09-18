@@ -2,33 +2,32 @@ from rest_framework import serializers
 from .models import Movie, Director, Producer, Actor
 
 
-class PersonBaseSerializer(serializers.Serializer):
-    name = serializers.CharField(read_only=True)
-    imdb_id = serializers.CharField(read_only=True)
+class PersonBaseSerializer(serializers.ModelSerializer):
+    """Sérializer de base gérant les données liées à des personnes"""
 
     class Meta:
-        fields = "__all__"
+        fields = ("name", "imdb_id")
 
 
-class DirectorSerializer(PersonBaseSerializer, serializers.ModelSerializer):
+class DirectorSerializer(PersonBaseSerializer):
+    """Serializer for Director model."""
 
-    class Meta:
+    class Meta(PersonBaseSerializer.Meta):
         model = Director
-        fields = PersonBaseSerializer.Meta.fields
 
 
-class ProducerSerializer(PersonBaseSerializer, serializers.ModelSerializer):
+class ProducerSerializer(PersonBaseSerializer):
+    """Serializer for Producer model."""
 
-    class Meta:
+    class Meta(PersonBaseSerializer.Meta):
         model = Producer
-        fields = PersonBaseSerializer.Meta.fields
 
 
-class ActorSerializer(PersonBaseSerializer, serializers.ModelSerializer):
+class ActorSerializer(PersonBaseSerializer):
+    """Serializer for Actor model."""
 
-    class Meta:
+    class Meta(PersonBaseSerializer.Meta):
         model = Actor
-        fields = PersonBaseSerializer.Meta.fields
 
 
 class MovieListSerializer(serializers.ModelSerializer):
@@ -39,6 +38,7 @@ class MovieListSerializer(serializers.ModelSerializer):
 
 
 class MovieDetailSerializer(serializers.ModelSerializer):
+    """Serializer détaillé pour le modèle Movie."""
 
     directors = DirectorSerializer(many=True)
     producers = ProducerSerializer(many=True)
@@ -57,6 +57,27 @@ class MovieDetailSerializer(serializers.ModelSerializer):
             "producers",
             "actors",
         )
+
+    def create(self, validated_data):
+        directors_data = validated_data.pop("directors")
+        producers_data = validated_data.pop("producers")
+        actors_data = validated_data.pop("actors")
+
+        movie = Movie.objects.create(**validated_data)
+
+        for director_data in directors_data:
+            director, _ = Director.objects.get_or_create(**director_data)
+            movie.directors.add(director)
+
+        for producer_data in producers_data:
+            producer, _ = Producer.objects.get_or_create(**producer_data)
+            movie.producers.add(producer)
+
+        for actor_data in actors_data:
+            actor, _ = Actor.objects.get_or_create(**actor_data)
+            movie.actors.add(actor)
+
+        return movie
 
 
 class MovieSearchRequestSerializer(serializers.Serializer):
