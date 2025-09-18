@@ -1,5 +1,9 @@
 from .test_setup import TestModelSetup
-from ..serializers import MovieListSerializer, MovieDetailSerializer
+from ..serializers import (
+    MovieListSerializer,
+    MovieDetailSerializer,
+    MovieAddRequestSerializer,
+)
 
 
 class SerializerTest(TestModelSetup):
@@ -27,6 +31,7 @@ class SerializerTest(TestModelSetup):
             set(data.keys()),
             {
                 "id",
+                "imdb_id",
                 "title",
                 "duration",
                 "summary",
@@ -48,4 +53,29 @@ class SerializerTest(TestModelSetup):
         )
         self.assertEqual(
             data["actors"][0]["name"], self.movie_data_1["actors"][0]["name"]
+        )
+
+    def test_add_movie_serializer_valid_data(self):
+        """Vérifie que les données valides passent la validation."""
+        serializer = MovieAddRequestSerializer(data=self.valid_imdb_id_data)
+        self.assertTrue(serializer.is_valid())
+
+    def test_add_movie_serializer_invalid_blank_imdb_id(self):
+        """Vérifie que l'identifiant IMDb vide échoue à la validation."""
+        serializer = MovieAddRequestSerializer(data=self.invalid_imdb_id_data_blank)
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("imdb_id", serializer.errors)
+        self.assertEqual(
+            serializer.errors["imdb_id"][0],
+            "L'identifiant IMDb de ce film ne peut être vide",
+        )
+
+    def test_add_movie_serializer_id_imdb_trop_long(self):
+        """Vérifie qu'un identifiant IMDb trop long échoue à la validation."""
+        serializer = MovieAddRequestSerializer(data=self.invalid_imdb_id_data_long)
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("imdb_id", serializer.errors)
+        self.assertEqual(
+            serializer.errors["imdb_id"][0],
+            "Assurez-vous que ce champ ne comporte pas plus de 10 caractères.",
         )

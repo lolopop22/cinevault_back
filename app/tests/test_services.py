@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import patch, MagicMock
 from imdb import IMDbError
+
+# from imdbinfo.models import MovieDetail, Person
 from django.test import TestCase
 from ..services import IMDbService
 
@@ -15,13 +17,13 @@ class TestIMDbService(TestCase):
         # Simuler les résultats de recherche
 
         movie1 = MagicMock(movieID="tt1234567")
-        movie1.get.side_effect = lambda key, default="Non indiqué": {
+        movie1.get.side_effect = lambda key, default="": {
             "title": "Inception",
             "cover url": "http://example.com/poster1.jpg",
         }.get(key, default)
 
         movie2 = MagicMock(movieID="tt7654321")
-        movie2.get.side_effect = lambda key, default="Non indiqué": {
+        movie2.get.side_effect = lambda key, default="": {
             "title": "Matrix",
             "cover url": "http://example.com/poster2.jpg",
         }.get(key, default)
@@ -64,4 +66,78 @@ class TestIMDbService(TestCase):
 
         self.assertIn(
             "Erreur inconnue survenue lors de la recherche IMDb", str(context.exception)
+        )
+
+    @patch(
+        "app.services.get_movie"
+    )  # le `patch()` doit viser le module où la fonction à mocker est utilisée, pas là où elle est définie
+    def test_get_movie_details_success(self, mock_get_movie):
+        # on utilise un vrai MovieDetail => le code est ainsi plus robuste
+        # movie = MovieDetail(
+        #     id="0111161",
+        #     imdb_id="0111161",
+        #     imdbId="tt0111161",
+        #     title="The Shawshank Redemption",
+        #     duration=142,
+        #     plot="Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.",
+        #     cover_url="http://example.com/shawshank.jpg",
+        #     directors=[Person(name="Frank Darabont", imdbId="ttt000001")],
+        #     producers=[Person(name="Niki Marvin", imdbId="ttt000002")],
+        #     stars=[
+        #         Person(name="Tim Robbins", imdbId="ttt000003"),
+        #         Person(name="Morgan Freeman", imdbId="ttt000004"),
+        #     ],
+        # )
+        # Procéder ainsi rend le code fragile , moins robuste...
+        movie_mock = MagicMock()
+        movie_mock.title = "The Shawshank Redemption"
+        movie_mock.duration = 142
+        movie_mock.plot = "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency."
+        movie_mock.cover_url = "http://example.com/shawshank.jpg"
+
+        director = MagicMock()
+        director.name = "Frank Darabont"
+        director.imdbId = "ttt000001"
+
+        producer = MagicMock()
+        producer.name = "Niki Marvin"
+        producer.imdbId = "ttt000002"
+
+        actor = MagicMock()
+        actor.name = "Tim Robbins"
+        actor.imdbId = "ttt000003"
+
+        movie_mock.directors = [director]
+        movie_mock.producers = [producer]
+        movie_mock.stars = [actor]
+
+        mock_get_movie.return_value = movie_mock
+
+        # Test successful retrieval of movie details
+        details = self.imdb_service.get_movie_details("0111161")
+        self.assertEqual(details["imdb_id"], "0111161")
+        self.assertEqual(details["title"], "The Shawshank Redemption")
+        self.assertEqual(details["duration"], "2h22")
+        self.assertEqual(
+            details["summary"],
+            "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.",
+        )
+        self.assertEqual(details["poster_url"], "http://example.com/shawshank.jpg")
+        self.assertIn(
+            {"name": "Frank Darabont", "imdb_id": "ttt000001"}, details["directors"]
+        )
+        self.assertIn(
+            {"name": "Tim Robbins", "imdb_id": "ttt000003"}, details["actors"]
+        )
+
+    @patch("imdbinfo.services.get_movie")
+    def test_get_movie_details_general_exception(self, mock_get_movie):
+        # Simulate a general exception
+        mock_get_movie.side_effect = Exception("Simulated Exception")
+
+        with self.assertRaises(Exception) as context:
+            self.imdb_service.get_movie_details("invalid_id")
+
+        self.assertTrue(
+            "Erreur lors de la récupération des détails" in str(context.exception)
         )

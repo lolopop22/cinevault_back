@@ -3,3 +3,4 @@ imdbpy
 django-cors-headers
 injector
 python-dotenv
+imdbinfo

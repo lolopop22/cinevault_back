@@ -34,14 +34,14 @@ class Actor(Person):
 class Movie(models.Model):
     imdb_id = models.CharField(max_length=20, unique=True)
     title = models.CharField(max_length=255)
-    duration = models.CharField(max_length=10)
-    summary = models.TextField()
-    poster_url = models.URLField()
+    duration = models.CharField(max_length=10, default="Non indiqué")
+    summary = models.TextField(default="Non indiqué")
+    poster_url = models.URLField(blank=True)
 
     # Relations
-    directors = models.ManyToManyField(Director, related_name="movies")
-    producers = models.ManyToManyField(Producer, related_name="movies")
-    actors = models.ManyToManyField(Actor, related_name="movies")
+    directors = models.ManyToManyField(Director, related_name="movies", blank=True)
+    producers = models.ManyToManyField(Producer, related_name="movies", blank=True)
+    actors = models.ManyToManyField(Actor, related_name="movies", blank=True)
 
     def __str__(self):
         return self.title
