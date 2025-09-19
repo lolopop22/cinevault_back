@@ -1,0 +1,78 @@
+[
+    {
+        "model": "app.category",
+        "pk": 1,
+        "fields": {
+            "name": "Science Fiction"
+        }
+    },
+    {
+        "model": "app.category",
+        "pk": 2,
+        "fields": {
+            "name": "Drama"
+        }
+    },
+    {
+        "model": "app.director",
+        "pk": 1,
+        "fields": {
+            "name": "Quentin Tarantino",
+            "imdb_id": "nm0000233"
+        }
+    },
+    {
+        "model": "app.producer",
+        "pk": 1,
+        "fields": {
+            "name": "Steven Spielberg",
+            "imdb_id": "nm0000229"
+        }
+    },
+    {
+        "model": "app.actor",
+        "pk": 1,
+        "fields": {
+            "name": "Leonardo DiCaprio",
+            "imdb_id": "nm0000138"
+        }
+    },
+    {
+        "model": "app.actor",
+        "pk": 2,
+        "fields": {
+            "name": "Brad Pitt",
+            "imdb_id": "nm0000123"
+        }
+    },
+    {
+        "model": "app.movie",
+        "pk": 1,
+        "fields": {
+            "imdb_id": "tt1234567",
+            "title": "Inception",
+            "duration": "2h28",
+            "summary": "A mind-bending thriller",
+            "poster_url": "http://example.com/poster.jpg",
+            "directors": [1],
+            "producers": [1],
+            "actors": [1, 2],
+            "categories": [1, 2]
+        }
+    },
+    {
+        "model": "app.movie",
+        "pk": 2,
+        "fields": {
+            "imdb_id": "tt7654321",
+            "title": "Once Upon a Time in Hollywood",
+            "duration": "2h39",
+            "summary": "A movie about Hollywood in the 60s.",
+            "poster_url": "http://example.com/poster.jpg",
+            "directors": [1],
+            "producers": [1],
+            "actors": [2],
+            "categories": [2]
+        }
+    }
+]

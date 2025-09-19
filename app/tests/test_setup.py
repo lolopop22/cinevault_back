@@ -1,5 +1,5 @@
 from rest_framework.test import APITestCase
-from ..models import Movie, Director, Producer, Actor
+from ..models import Movie, Director, Producer, Actor, Category
 
 
 class TestModelSetup(APITestCase):
@@ -10,6 +10,8 @@ class TestModelSetup(APITestCase):
         self.producer_data = {"name": "Steven Spielberg", "imdb_id": "nm0000229"}
         self.actor_data_1 = {"name": "Leonardo DiCaprio", "imdb_id": "nm0000138"}
         self.actor_data_2 = {"name": "Brad Pitt", "imdb_id": "nm0000123"}
+        self.category_data_1 = {"name": "Science Fiction"}
+        self.category_data_2 = {"name": "Drama"}
 
         self.movie_data_1 = {
             "imdb_id": "tt1234567",
@@ -32,6 +34,8 @@ class TestModelSetup(APITestCase):
         self.producer = Producer.objects.create(**self.producer_data)
         self.actor_1 = Actor.objects.create(**self.actor_data_1)
         self.actor_2 = Actor.objects.create(**self.actor_data_2)
+        self.category_1 = Category.objects.create(**self.category_data_1)
+        self.category_2 = Category.objects.create(**self.category_data_2)
 
         self.movie_1 = Movie.objects.create(**self.movie_data_1)
         self.movie_2 = Movie.objects.create(**self.movie_data_2)
@@ -40,10 +44,12 @@ class TestModelSetup(APITestCase):
         self.movie_1.directors.add(self.director)
         self.movie_1.producers.add(self.producer)
         self.movie_1.actors.add(self.actor_1)
+        self.movie_1.categories.add(self.category_1, self.category_2)
 
         self.movie_2.directors.add(self.director)
         self.movie_2.producers.add(self.producer)
         self.movie_2.actors.add(self.actor_2)
+        self.movie_2.categories.add(self.category_2)
 
         self.valid_imdb_id_data = {"imdb_id": "tt0111161"}
         self.invalid_imdb_id_data_blank = {"imdb_id": ""}
