@@ -8,13 +8,16 @@ from ..services import IMDbService
 
 
 class TestIMDbService(TestCase):
+    """Tests unitaires pour le service IMDb."""
 
     def setUp(self):
+        """Configuration des tests, initialise le service IMDb."""
+
         self.imdb_service = IMDbService()
 
     @patch("imdb.IMDbBase.search_movie")
     def test_search_movies(self, mock_search_movie):
-        # Simuler les résultats de recherche
+        """Test la recherche de films via l'API IMDb avec des résultats simulés."""
 
         movie1 = MagicMock(movieID="tt1234567")
         movie1.get.side_effect = lambda key, default="": {
@@ -50,6 +53,8 @@ class TestIMDbService(TestCase):
 
     @patch("imdb.IMDbBase.search_movie")
     def test_search_movies_imdb_error(self, mock_search_movie):
+        """Test que la méthode lève une erreur IMDbError correctement."""
+
         mock_search_movie.side_effect = IMDbError("Simulated IMDbError")
 
         with self.assertRaises(IMDbError) as context:
@@ -59,19 +64,23 @@ class TestIMDbService(TestCase):
 
     @patch("imdb.IMDbBase.search_movie")
     def test_search_movie_generic_exception(self, mock_search_movie):
+        """Test de la levée d'une exception générique et gestion."""
+
         mock_search_movie.side_effect = Exception("Erreur générique")
 
         with self.assertRaises(Exception) as context:
             self.imdb_service.search_movie("Inception")
 
         self.assertIn(
-            "Erreur inconnue survenue lors de la recherche IMDb", str(context.exception)
+            "Erreur survenue lors de l'interaction avec IMDb", str(context.exception)
         )
 
     @patch(
         "app.services.get_movie"
     )  # le `patch()` doit viser le module où la fonction à mocker est utilisée, pas là où elle est définie
     def test_get_movie_details_success(self, mock_get_movie):
+        """Test la récupération réussie des détails d'un film."""
+
         # on utilise un vrai MovieDetail => le code est ainsi plus robuste
         # movie = MovieDetail(
         #     id="0111161",
@@ -94,6 +103,7 @@ class TestIMDbService(TestCase):
         movie_mock.duration = 142
         movie_mock.plot = "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency."
         movie_mock.cover_url = "http://example.com/shawshank.jpg"
+        movie_mock.genres = ["Drama", "Crime"]
 
         director = MagicMock()
         director.name = "Frank Darabont"
@@ -113,7 +123,6 @@ class TestIMDbService(TestCase):
 
         mock_get_movie.return_value = movie_mock
 
-        # Test successful retrieval of movie details
         details = self.imdb_service.get_movie_details("0111161")
         self.assertEqual(details["imdb_id"], "0111161")
         self.assertEqual(details["title"], "The Shawshank Redemption")
@@ -129,10 +138,13 @@ class TestIMDbService(TestCase):
         self.assertIn(
             {"name": "Tim Robbins", "imdb_id": "ttt000003"}, details["actors"]
         )
+        self.assertIn({"name": "Drama"}, details["categories"])
+        self.assertIn({"name": "Crime"}, details["categories"])
 
     @patch("imdbinfo.services.get_movie")
     def test_get_movie_details_general_exception(self, mock_get_movie):
-        # Simulate a general exception
+        """Vérifie que les exceptions générales sont levées correctement."""
+
         mock_get_movie.side_effect = Exception("Simulated Exception")
 
         with self.assertRaises(Exception) as context:
