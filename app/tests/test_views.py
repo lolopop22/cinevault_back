@@ -4,6 +4,7 @@ from django.urls import reverse_lazy
 
 from .test_setup import TestModelSetup
 from ..services import IMDbService
+from ..models import Category
 
 
 class TestMovieViewSet(TestModelSetup):
@@ -12,25 +13,36 @@ class TestMovieViewSet(TestModelSetup):
 
         super().setUp()
 
+        # Nettoyage des catégories pour éviter les duplicatas
+        # Category.objects.all().delete()
+
         self.url = reverse_lazy("movie-list")
         self.detail_url = reverse_lazy("movie-detail", kwargs={"pk": self.movie_1.id})
         self.search_url = reverse_lazy("movie-search_movie")
         self.add_movie_url = reverse_lazy("movie-add_movie")
 
     def test_get_movie_list(self):
+        """Vérifie la récupération de la liste des films."""
+
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
         self.assertEqual(response.json()[0]["title"], self.movie_data_1.get("title"))
 
     def test_get_movie_detail(self):
+        """Vérifie la récupération des détails d'un film spécifique."""
+
         response = self.client.get(self.detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["title"], "Inception")
         self.assertEqual(response.data["duration"], "2h28")
+        self.assertIn("categories", response.data)
+        self.assertGreater(len(response.data["categories"]), 0)
 
     @patch.object(IMDbService, "search_movie")
     def test_search_movies_valid(self, mock_search_movie):
+        """Vérifie la recherche de films avec un titre valide."""
+
         mock_search_movie.return_value = [
             {
                 "imdb_id": "tt0111161",
@@ -51,17 +63,23 @@ class TestMovieViewSet(TestModelSetup):
 
     @patch.object(IMDbService, "search_movie")
     def test_search_movies_blank_title(self, mock_search_movie):
+        """Vérifie qu'une recherche avec un titre vide est rejetée."""
+
         response = self.client.get(self.search_url, {"title": ""})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Le titre du film ne peut être vide.", response.data["title"])
 
     def test_search_movies_missing_title(self):
+        """Vérifie que l'absence de titre déclenche une erreur de validation."""
+
         response = self.client.get(self.search_url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Ce champ est obligatoire.", response.data["title"])
 
     @patch.object(IMDbService, "search_movie")
     def test_search_movies_generic_exception(self, mock_search_movie):
+        """Test que l'API gère correctement les exceptions lors de la recherche."""
+
         mock_search_movie.side_effect = Exception("Erreur générique")
         response = self.client.get(self.search_url, {"title": "Inception"})
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -69,7 +87,8 @@ class TestMovieViewSet(TestModelSetup):
 
     @patch.object(IMDbService, "get_movie_details")
     def test_add_movie_success(self, mock_get_movie_details):
-        """Vérifie l'ajout réussi d'un nouveau film au catalogue général."""
+        """Vérifie l'ajout réussi d'un nouveau film au catalogue."""
+
         mock_get_movie_details.return_value = {
             "imdb_id": "tt0068646",
             "title": "The Godfather",
@@ -79,13 +98,20 @@ class TestMovieViewSet(TestModelSetup):
             "directors": [{"name": "Francis Ford Coppola", "imdb_id": "nm0001123"}],
             "producers": [{"name": "Albert S. Ruddy", "imdb_id": "nm0748918"}],
             "actors": [{"name": "Marlon Brando", "imdb_id": "nm0000008"}],
+            "categories": [{"name": "Drama"}, {"name": "Crime"}],
         }
+
+        # Assurez-vous que les catégories existent avant d'exécuter le test
+        # for category_data in mock_get_movie_details.return_value["categories"]:
+        #     Category.objects.get_or_create(name=category_data["name"])
+
         response = self.client.post(self.add_movie_url, {"imdb_id": "tt0068646"})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     @patch.object(IMDbService, "get_movie_details")
     def test_add_movie_duplicate(self, mock_get_movie_details):
         """Test que l'ajout d'un film déjà existant dans le catalogue échoue."""
+
         # Configuration du retour simulé pour get_movie_details
         mock_get_movie_details.return_value = {
             "imdb_id": self.movie_data_1["imdb_id"],
@@ -96,6 +122,7 @@ class TestMovieViewSet(TestModelSetup):
             "directors": [self.director_data],
             "producers": [self.producer_data],
             "actors": [self.actor_data_1],
+            "categories": [self.category_data_1, self.category_data_2],
         }
 
         # Tenter d'ajouter le même film une deuxième fois
@@ -109,6 +136,7 @@ class TestMovieViewSet(TestModelSetup):
 
     def test_add_movie_with_invalid_imdb_id(self):
         """Test d'ajout avec un IMDb ID invalide."""
+
         response = self.client.post(self.add_movie_url, {"imdb_id": "invalid_id"})
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertIn(
