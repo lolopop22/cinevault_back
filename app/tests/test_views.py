@@ -1,3 +1,4 @@
+import logging
 from unittest.mock import patch
 from rest_framework import status
 from django.urls import reverse_lazy
@@ -16,7 +17,7 @@ class TestMovieViewSet(TestModelSetup):
         # Nettoyage des catégories pour éviter les duplicatas
         # Category.objects.all().delete()
 
-        self.url = reverse_lazy("movie-list")
+        self.list_url = reverse_lazy("movie-list")
         self.detail_url = reverse_lazy("movie-detail", kwargs={"pk": self.movie_1.id})
         self.search_url = reverse_lazy("movie-search_movie")
         self.add_movie_url = reverse_lazy("movie-add_movie")
@@ -24,7 +25,7 @@ class TestMovieViewSet(TestModelSetup):
     def test_get_movie_list(self):
         """Vérifie la récupération de la liste des films."""
 
-        response = self.client.get(self.url)
+        response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
         self.assertEqual(response.json()[0]["title"], self.movie_data_1.get("title"))
@@ -143,3 +144,12 @@ class TestMovieViewSet(TestModelSetup):
             "Erreur lors de la récupération des détails du film",
             response.data["detail"],
         )
+
+    def test_filter_by_category(self):
+        response = self.client.get(
+            reverse_lazy("movie-list"), {"categories": "Science Fiction"}
+        )
+        logging.debug(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for movie in response.data:
+            self.assertIn("Science Fiction", movie["categories"])

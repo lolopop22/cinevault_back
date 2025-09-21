@@ -1,4 +1,5 @@
 djangorestframework==3.x.x
+django-filter
 imdbpy
 django-cors-headers
 injector

@@ -80,11 +80,15 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class MovieListSerializer(serializers.ModelSerializer):
-    """Sérialiseur pour lister les films avec informations minimales."""
+    """Sérialiseur pour lister les films avec informations minimales, incluant les catégories."""
+
+    categories = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="name"
+    )
 
     class Meta:
         model = Movie
-        fields = ("id", "title", "poster_url")
+        fields = ("id", "title", "poster_url", "categories")
 
 
 class MovieDetailSerializer(serializers.ModelSerializer):
