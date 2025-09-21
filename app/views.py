@@ -1,10 +1,12 @@
 import logging
 
 from rest_framework import viewsets, status
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from typing import Any
 
+from .filters import MovieFilter
 from .models import Movie
 from .serializers import (
     MovieListSerializer,
@@ -18,11 +20,18 @@ from .services import IMDbService
 
 
 class MovieViewSet(viewsets.ModelViewSet):
-    """VueSet pour gérer les opérations CRUD sur les films, avec recherche et ajout à partir de l'IMDb."""
+    """VueSet pour gérer les opérations CRUD sur les films, avec recherche, ajout à partir de l'IMDb
+    et filtres avancés par catégories, réalisateurs, etc."""
 
     queryset = Movie.objects.all()
     serializer_class = MovieListSerializer
     detail_serializer_class = MovieDetailSerializer
+
+    # Configuration des filtres
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = MovieFilter
+    search_fields = ["title", "summary"]
+    ordering_fields = ["title", "duration"]
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialisation de la VueSet pour les films avec injection de dépendance de IMDbService."""

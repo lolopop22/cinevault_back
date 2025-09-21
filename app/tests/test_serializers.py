@@ -12,7 +12,7 @@ class SerializerTest(TestModelSetup):
         """Vérifie que le sérialiseur MovieList contient les champs requis et sérialise correctement."""
 
         data = MovieListSerializer(instance=self.movie_1).data
-        self.assertEqual(set(data.keys()), {"id", "title", "poster_url"})
+        self.assertEqual(set(data.keys()), {"id", "title", "poster_url", "categories"})
         self.assertEqual(data["title"], self.movie_data_1["title"])
         self.assertEqual(
             data["poster_url"],
